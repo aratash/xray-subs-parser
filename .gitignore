@@ -1,7 +1,13 @@
 # Директории
 output/
+venv/
 
 # Шаблоны
 ~*
 *~
 *.tmp
+*.json
+*.txt
+
+# Файлы
+test_secrets.json
