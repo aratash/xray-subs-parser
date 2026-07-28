@@ -10,7 +10,7 @@ import os # Взаимодействие с файловой системой
 
 # Программа
 app_name = "Xray-subs-parser"
-app_version = "v1.0.3"
+app_version = "v1.0.4"
 # ID устройства 
 ## Используется для идентификации на стороне сервера. 
 ## Если не требуется, то можно заменить пустыми значениями
@@ -145,8 +145,8 @@ def url2json(url: str, tag: str = "", addTag: str = "") -> dict:
                     "quicParams": {
                         "congestion": "force-brutal",
                         "bbrProfile": "standard",
-                        "brutalUp": "0",
-                        "brutalDown": "0",
+                        "brutalUp": "900 mbps",
+                        "brutalDown": "900 mbps",
                         "udpHop": {
                           "ports": "",
                           "interval": ""
