@@ -10,7 +10,7 @@ import os # Взаимодействие с файловой системой
 
 # Программа
 app_name = "Xray-subs-parser"
-app_version = "v1.0.2"
+app_version = "v1.0.3"
 # ID устройства 
 ## Используется для идентификации на стороне сервера. 
 ## Если не требуется, то можно заменить пустыми значениями
@@ -145,8 +145,8 @@ def url2json(url: str, tag: str = "", addTag: str = "") -> dict:
                     "quicParams": {
                         "congestion": "force-brutal",
                         "bbrProfile": "standard",
-                        "brutalUp": 0,
-                        "brutalDown": 0,
+                        "brutalUp": "0",
+                        "brutalDown": "0",
                         "udpHop": {
                           "ports": "",
                           "interval": ""
@@ -180,9 +180,9 @@ def url2json(url: str, tag: str = "", addTag: str = "") -> dict:
                         }
                         finalmask["finalmask"]["udp"].append(udpParams)
                     case "upmbps":
-                        finalmask["finalmask"]["quicParams"]["brutalUp"] = parse_url[param][0]
+                        finalmask["finalmask"]["quicParams"]["brutalUp"] = f"{parse_url[param][0]} mbps"
                     case "downmbps":
-                        finalmask["finalmask"]["quicParams"]["brutalDown"] = parse_url[param][0]
+                        finalmask["finalmask"]["quicParams"]["brutalDown"] = f"{parse_url[param][0]} mbps"
                     case "hop_interval":
                         finalmask["finalmask"]["quicParams"]["udpHop"]["interval"] = parse_url[param][0]
                     case "insecure" | "allowInsecure":
