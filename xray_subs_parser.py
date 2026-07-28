@@ -10,7 +10,7 @@ import os # Взаимодействие с файловой системой
 
 # Программа
 app_name = "Xray-subs-parser"
-app_version = "v1.0.1"
+app_version = "v1.0.2"
 # ID устройства 
 ## Используется для идентификации на стороне сервера. 
 ## Если не требуется, то можно заменить пустыми значениями
@@ -426,7 +426,7 @@ def url2json(url: str, tag: str = "", addTag: str = "") -> dict:
     if url_split.fragment:
         tag = f"{tag}_{unquote(url_split.fragment)}"
     else:
-        tag = f"{url_split.hostname}-{outbound["protocol"]}-{outbound["streamSettings"]["network"]}-{outbound["streamSettings"]["security"]}"
+        tag = f"{url_split.hostname}-{outbound['protocol']}-{outbound['streamSettings']['network']}-{outbound['streamSettings']['security']}"
     
     if addTag:
         tag = f"{addTag}_{tag}"
