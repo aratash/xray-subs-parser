@@ -10,7 +10,7 @@ import os # Взаимодействие с файловой системой
 
 # Программа
 app_name = "Xray-subs-parser"
-app_version = "v1.0"
+app_version = "v1.0.1"
 # ID устройства 
 ## Используется для идентификации на стороне сервера. 
 ## Если не требуется, то можно заменить пустыми значениями
@@ -251,7 +251,7 @@ def url2json(url: str, tag: str = "", addTag: str = "") -> dict:
                         case "host":
                             wsSettings["wsSettings"]["host"] = parse_url["host"][0]
                         case "ed":
-                            wsSettings["wsSettings"]["ed"] = wsSettings["wsSettings"]["path"] + f"?ed={parse_url["ed"][0]}"
+                            wsSettings["wsSettings"]['ed'] = wsSettings["wsSettings"]["path"] + f"?ed={parse_url['ed'][0]}"
                         case "headers":
                             headers = parse_url["headers"][0].split(",")
                             for header in headers:
@@ -305,7 +305,7 @@ def url2json(url: str, tag: str = "", addTag: str = "") -> dict:
                         case "host":
                             httpupgradeSettings["httpupgradeSettings"]["path"] = parse_url["path"][0]
                         case "ed":
-                            httpupgradeSettings["httpupgradeSettings"]["ed"] = httpupgradeSettings["httpupgradeSettings"]["path"] + f"?ed={parse_url["ed"][0]}"
+                            httpupgradeSettings["httpupgradeSettings"]['ed'] = httpupgradeSettings["httpupgradeSettings"]["path"] + f"?ed={parse_url['ed'][0]}"
                         case "headers":
                             headers = parse_url["headers"][0].split(",")
                             for header in headers:
