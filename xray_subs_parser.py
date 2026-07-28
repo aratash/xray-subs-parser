@@ -10,7 +10,7 @@ import os # Взаимодействие с файловой системой
 
 # Программа
 app_name = "Xray-subs-parser"
-app_version = "v1.0.4"
+app_version = "v1.0.5"
 # ID устройства 
 ## Используется для идентификации на стороне сервера. 
 ## Если не требуется, то можно заменить пустыми значениями
@@ -156,7 +156,7 @@ def url2json(url: str, tag: str = "", addTag: str = "") -> dict:
             }
             
             # Подстановка основных настроек 
-            outbound["protocol"] = url_split.scheme
+            outbound["protocol"] = "hysteria"
             settings["address"] = url_split.hostname
             
             hyPort = url_split.netloc.split(":")[-1]
