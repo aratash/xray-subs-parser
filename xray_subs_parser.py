@@ -6,11 +6,12 @@ from base64 import b64decode # Декодирование ответа по URL
 from json import dumps # Формирование JSON
 from platform import uname # Имя системы
 from hashlib import sha256 # Хеш-функция 
+from re import fullmatch # RegEx фильтр
 import os # Взаимодействие с файловой системой
 
 # Программа
 app_name = "Xray-subs-parser"
-app_version = "v1.0.6"
+app_version = "v1.1.0"
 # ID устройства 
 ## Используется для идентификации на стороне сервера. 
 ## Если не требуется, то можно заменить пустыми значениями
@@ -274,7 +275,7 @@ def url2json(url: str, tag: str = "", addTag: str = "") -> dict:
                     "grpcSettings": {
                         "authority": "",
                         "serviceName": "",
-                        "multiMode": false
+                        "multiMode": False
                     }
                 }
                 
@@ -337,7 +338,7 @@ def url2json(url: str, tag: str = "", addTag: str = "") -> dict:
                     "tlsSettings": {
                         "serverName": "",
                         "allowInsecure": False,
-                        "alpn": ["h2", "http/1.1"],
+                        "alpn": [],
                         "fingerprint": "",
                     }
                 }
@@ -408,7 +409,7 @@ def url2json(url: str, tag: str = "", addTag: str = "") -> dict:
         match parse_url["packetEncoding"][0]:
             case "xudp":
                 mux = { 
-                    "enabled": true,
+                    "enabled": True,
                     "concurrency": 8,
                     "xudpConcurrency": 16
                 }
@@ -417,7 +418,7 @@ def url2json(url: str, tag: str = "", addTag: str = "") -> dict:
                 
             case "packetaddr":
                 mux = { 
-                    "enabled": true,
+                    "enabled": True,
                     "concurrency": 8
                 }
                 
@@ -492,17 +493,17 @@ def args_parser() -> list:
     argparser.add_argument(
         "--url", 
         action="append",
-        help="Ссылка на подписку или конфигурацию (https, vless). Можно указать несколько раз."
+        help="Ссылка на подписку или прокси (https, vless). Можно указать несколько раз."
     )
     argparser.add_argument(
         "-t", "--tag", 
-        help="Глобальный тег конфигурации. Будет добавляться к имени конфигурации и станет именем файла (TAG.json). Приоритет тегов: глобальный-тег_тег-файла_URL-fragment. Для тега конфигурации будет использоваться SERVER-PROTOCOL-TRANSPORT-SECURITY если fragment пуст.",
-        default=""
+        default="",
+        help="Глобальный тег конфигурации. Будет добавляться к имени прокси и станет именем файла (TAG.json). Приоритет тегов: глобальный-тег_тег-файла_URL-fragment. Для тега прокси будет использоваться SERVER-PROTOCOL-TRANSPORT-SECURITY если fragment пуст.",
     )
     argparser.add_argument(
         "-c", "--config", 
         action="append",
-        help="Файл с ссылками подписок и конфигураций. Каждая ссылка должна быть отдельной строке. Можно указать тег для конфигурации (TAG URL). Можно указать несколько раз."
+        help="Файл с ссылками подписок и прокси. Каждая ссылка должна быть в отдельной строке. Можно указать тег для ссылкок (TAG URL), который будет добавляться в начале тега прокси. Можно указать несколько раз."
     )
     argparser.add_argument(
         "-d", "--dir",
@@ -510,9 +511,19 @@ def args_parser() -> list:
         help="Директория сохранения конфигурации."
     )
     argparser.add_argument(
+        "-rf", "--regex-filter",
+        default = "",
+        help="RegEx фильтр, проверяющий тег конфигурации. Если тег соответствует фильтру - конфигурация будет добавлена в файл. Фильтр применяется к fragment до добавления других тегов."
+    )
+    argparser.add_argument(
+        "-if", "--invert-filter",
+        action = "store_true",
+        help="Инвертирует поведение фильтра. Если тег соответствует фильтру - конфигурация НЕ будет добавлена в файл."
+    )
+    argparser.add_argument(
         "-i", "--index",
         action = "store_true",
-        help="Добавить порядковый номер в тег конфигураций (TAG-INDEX)."
+        help="Добавить порядковый номер в тег прокси (TAG-INDEX)."
     )
     argparser.add_argument(
         "-V", "--version", 
@@ -532,6 +543,17 @@ def add_index_tag(outbounds: dict[list]) -> dict[list]:
         
     return outbounds
 
+def regex_filter(filter: str, tag: str, invert: bool = False) -> bool:
+    result = False
+    if fullmatch(filter, tag):
+        result = True
+    else: 
+        result = False
+    
+    result = not result if invert else result
+    
+    return result
+
 def main() -> None:
     """
     Принимает вводные данные и вызывает необходимые функции.
@@ -539,6 +561,7 @@ def main() -> None:
     # Собираем аргументы комманды
     args = args_parser()
     links = []
+    print(args)
     
     # Гарантируем существование директории
     os.makedirs(args.dir, exist_ok=True)
@@ -570,12 +593,15 @@ def main() -> None:
         if link[0].startswith("https://"):
             config_urls = parse_subscribtion(link[0])
             for config_url in config_urls:
-                if config_url.strip(): 
-                    outbound = url2json(unquote(config_url), link[1], args.tag) 
+                config_url = unquote(config_url.strip())
+                if config_url and regex_filter(filter=args.regex_filter, tag=urlsplit(config_url).fragment, invert=args.invert_filter): 
+                    outbound = url2json(config_url, link[1], args.tag) 
                     outbounds["outbounds"].append(outbound)
         else:
-            outbound = url2json(unquote(link[0]), link[1], args.tag) 
-            outbounds["outbounds"].append(outbound)
+            link[0] = unquote(link[0].strip())
+            if link[0] and regex_filter(filter=args.regex_filter, tag=urlsplit(link[0]).fragment, invert=args.invert_filter): 
+                outbound = url2json(link[0], link[1], args.tag) 
+                outbounds["outbounds"].append(outbound)
         
     # Завершающие операции
     if not outbounds["outbounds"]:
